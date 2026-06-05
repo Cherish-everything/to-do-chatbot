@@ -371,6 +371,7 @@ hr {
     background: var(--bluewhite) !important;
     border: none;
     border-radius: 20px;
+    margin: 20px;
 
     color: var(--desatblue);
     font-family: var(--font);
