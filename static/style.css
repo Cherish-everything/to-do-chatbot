@@ -367,6 +367,9 @@ hr {
     -moz-appearance: none;
     appearance: none;
 
+    display: flex;
+    flex-direction: collumn;
+
     background-color: var(--bluewhite);
     background: var(--bluewhite) !important;
     border: none;
