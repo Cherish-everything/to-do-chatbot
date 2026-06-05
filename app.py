@@ -107,7 +107,7 @@ def complete_task(task_id):
     session["completed_count"] = session.get("completed_count", 0) + 1
     
     # --- CHANGE THIS LINE FROM REDIRECT TO JSON ---
-    return redirect(/main)
+    return redirect("/main")
 
 @app.route("/")
 def home():
