@@ -107,7 +107,7 @@ def complete_task(task_id):
     session["completed_count"] = session.get("completed_count", 0) + 1
     
     # --- CHANGE THIS LINE FROM REDIRECT TO JSON ---
-    return jsonify({"success": True, "completed_count": session["completed_count"]})
+    return redirect(/main)
 
 @app.route("/")
 def home():
@@ -139,15 +139,25 @@ def register():
         username = request.form.get("new_username")
         password = request.form.get("new_password")
         confirmation = request.form.get("confirmation")
+        
+        # 1. Validation check for blank entries or password mismatches
         if not username or not password or confirmation != password:
-            return "Invalid registration details."
+            return "Invalid registration details. Ensure passwords match.", 400
+            
+        # 2. Strict check to ensure username doesn't already exist in the database
         rows = db.execute("SELECT * FROM users WHERE username = ?", username)
         if len(rows) > 0:
-            return "Username taken."
+            return "Username taken. Please choose a different identity.", 400
         
-        db.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", 
-                   username, generate_password_hash(password))
-        return redirect("/login")
+        # 3. Clean insert execution block
+        try:
+            db.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", 
+                       username, generate_password_hash(password))
+            return redirect("/login")
+        except Exception as e:
+            print(f"Registration insert exception: {e}")
+            return "An internal database entry error occurred.", 500
+            
     return render_template("register.html")
 
 if __name__ == "__main__":
