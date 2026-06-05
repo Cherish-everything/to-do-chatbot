@@ -1,0 +1,101 @@
+{% extends "layout.html" %}
+
+{% block title %}Main Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <h2 class="titles">Your Assistant</h2>
+    <hr>
+    <div class="chat-stream-container">
+        {% for item in todo %}
+        <div class="chat-row user-alignment">
+            <div class="chat-bubble msg-user">
+                <form class="button-container" action="/complete-task/{{ item.id }}" method="POST" style="display: inline;">
+                    <button id="complete_task" type="submit" class="circle-button" title="Complete Protocol"></button>
+                </form>
+                <span class="chat-sender"></span> {{ item.task }}
+            </div>
+        </div>
+        {% endfor %}
+
+        <div id = "inactivity-notification" class="chat-row system-alignment" style="display: none;">
+            <div class="chat-bubble msg-system">
+                <span id="notification-text">Awaiting synchronization...</span>
+                <span class="status-icon">✧</span>
+            </div>
+        </div>
+    </div>
+
+    <form class="message-container" action="/add-task" method="POST">
+        <input class="message" autofocus="on" type="text" name="task_name" placeholder="Type a new task..." required>
+        <button class="send-btn" type="submit">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="send-icon">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+            </svg>
+        </button>
+    </form>
+
+    <hr>
+
+    <p>Tasks completed today: {{ completed_today }}</p>
+</div>
+<script>
+    const TIMEOUT_LIMIT = 5 * 1 * 1000;
+    let inactivityTimer;
+
+    function showInactivityNotification() {
+        const notification = document.getElementById('inactivity-notification');
+        const textElement = document.getElementById('notification-text');
+
+        if (notification && textElement) {
+            // Ping backend python route silently
+            fetch('/get-system-message')
+                .then(response => response.json())
+                .then(data => {
+                    // Update the chat bubble text container with the exact message Python generated
+                    textElement.textContent = data.message;
+
+                    // Reveal the bubble layout smoothly
+                    notification.style.display = 'flex';
+                })
+                .catch(error => {
+                    console.error("Error retrieving engine logs:", error);
+                    textElement.textContent = "System standby active. Synchronization error.";
+                    notification.style.display = 'flex';
+                });
+        }
+    }
+
+    function dismissNotification() {
+        const notification = document.getElementById('inactivity-notification');
+        if (notification) {
+            notification.style.display = 'none';
+        }
+    }
+
+    function resetInactivityTimer() {
+        dismissNotification();
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(showInactivityNotification, TIMEOUT_LIMIT);
+    }
+
+    // Event listeners to handle user activity loops
+    window.onload = resetInactivityTimer;
+
+    const taskInput = document.querySelector(".message");
+    if (taskInput) {
+        taskInput.addEventListener("input", resetInactivityTimer);
+    }
+
+    const sendButton = document.querySelector(".send-btn");
+    if (sendButton) {
+        sendButton.addEventListener("click", resetInactivityTimer);
+    }
+
+    const completionButtons = document.querySelectorAll(".complete-task-btn");
+    completionButtons.forEach(function (btn) {
+        btn.addEventListener("click", resetInactivityTimer);
+    });
+</script>
+{% endblock %}

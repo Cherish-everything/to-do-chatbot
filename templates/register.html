@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="card">
+        <h1 class="titles"> Register </h1>
+        <hr>
+        <div class="form-container">
+            <form action="/register" method="POST">
+
+                <div>
+                    <span class="field-label">Username:</span>
+                    <input class="input-field" id="username" name="new_username" type="text" autocomplete="off" autofocus
+                        placeholder="Username" required>
+                </div>
+
+                <div>
+                    <span class="field-label">Passcode:</span>
+                    <input class="input-field" id="password" name="new_password" type="password" autocomplete="off"
+                        placeholder="Password" oninput="validatePassword()" required>
+                </div>
+
+                <div>
+                    <span class="field-label">Confirm Code:</span>
+                    <input class="input-field" id="confirmation" name="confirmation" type="password" autocomplete="off"
+                        placeholder="Password" oninput="validatePassword()" required>
+                    <span id="message"></span>
+                </div>
+                <hr>
+                <button class="submit" type="submit">REGISTER</button>
+            </form>
+            <a href="/login">Already have an account?</a>
+        </div>
+    </div>
+
+    <script>
+        function validatePassword() {
+            var pass = document.getElementById('password').value;
+            var confirmPass = document.getElementById('confirmation').value;
+            var message = document.getElementById('message');
+
+            if (pass === "" && confirmPass === "") {
+                message.innerHTML = "";
+            }
+            if (pass === confirmPass) {
+                message.style.color = '#2ecc71'; // Designer green
+                message.innerHTML = '✓ Passwords match';
+            }
+            else {
+                message.style.color = '#ff7675'; // Your theme red
+                message.innerHTML = '✗ Passwords do not match';
+            }
+        }
+    </script>
+</body>
+</html>
