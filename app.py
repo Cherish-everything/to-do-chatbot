@@ -5,15 +5,14 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 import random
 
-import os
-from cs50 import SQL
-from flask import Flask, render_template, request, redirect, session
-
-# 1. Initialize Flask app routing parameters safely
 app = Flask(__name__, template_folder='templates', static_folder='static')
 
-# 2. Connect to the pristine environment path
+# 2. Connect to the pristine environment path (with the Vercel pre-create file trick)
 if os.path.exists("/tmp"):
+    db_path = "/tmp/todo.db"
+    # Create an empty file first so the CS50 library doesn't panic and crash
+    if not os.path.exists(db_path):
+        open(db_path, "w").close()
     db = SQL("sqlite:////tmp/todo.db")
 else:
     db = SQL("sqlite:///todo.db")
