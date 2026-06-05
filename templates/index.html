@@ -96,6 +96,31 @@
     const completionButtons = document.querySelectorAll(".complete-task-btn");
     completionButtons.forEach(function (btn) {
         btn.addEventListener("click", resetInactivityTimer);
+        
+    });
+
+        // Add this to your main JavaScript file
+    document.querySelectorAll('.complete-task-form').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Stop the page from reloading!
+            
+            const taskCard = form.closest('.task-card-element'); // Target the visual item box
+            const actionUrl = form.getAttribute('action');
+            
+            // Send the complete request to Python in the background
+            const response = await fetch(actionUrl, { method: 'POST' });
+            const data = await response.json();
+            
+            if (data.success) {
+                // Instantly vanish the task card from the screen visually
+                taskCard.style.opacity = '0';
+                taskCard.style.transform = 'scale(0.95)';
+                setTimeout(() => taskCard.remove(), 300);
+                
+                // Update your "Completed Today" counter counter text on the fly!
+                document.getElementById('completed-counter').innerText = data.completed_count;
+            }
+        });
     });
 </script>
 {% endblock %}
