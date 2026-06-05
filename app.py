@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, session, redirect, make_response, jsonify
+import os
 from cs50 import SQL
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
@@ -6,7 +7,28 @@ import random
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = "to_do_list_key" 
-db = SQL("sqlite:///todo.db")
+
+if os.path.exists("/tmp"):
+    db = SQL("sqlite:////tmp/todo.db")
+else:
+    db = SQL("sqlite:///todo.db")
+    
+db.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        username TEXT NOT NULL,
+        password_hash TEXT NOT NULL
+    );
+""")
+
+db.execute("""
+    CREATE TABLE IF NOT EXISTS list (
+        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        user_id INTEGER NOT NULL,
+        task TEXT NOT NULL,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    );
+""")
 
 def login_required(f):
     @wraps(f)
