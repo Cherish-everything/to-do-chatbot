@@ -11,19 +11,18 @@ app.secret_key = "clastr_agency_todo_secret_key_99_flex"
 # 2. Connect to the pristine environment path (with the Vercel pre-create file trick)
 if os.path.exists("/tmp"):
     db_path = "/tmp/todo.db"
-    # Create an empty file first so the CS50 library doesn't panic and crash
     if not os.path.exists(db_path):
         open(db_path, "w").close()
     db = SQL("sqlite:////tmp/todo.db")
 else:
     db = SQL("sqlite:///todo.db")
 
-# 3. Create tables using independent, single-query executions
+# 3. Create tables safely
 try:
     db.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-            username TEXT NOT NULL,
+            username TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL
         );
     """)
@@ -52,12 +51,9 @@ def login_required(f):
 @login_required
 def index():
     user_id = session.get('user_id')
-    
-    # Fetch live tasks for this specific logged-in user
     todo_rows = db.execute("SELECT id, task FROM list WHERE user_id = ?", user_id)
     completed = session.get("completed_count", 0)
 
-    # Force a fresh response package to bypass any annoying engine layout caching
     rendered = render_template("index.html", 
                                todo=todo_rows,
                                completed_today=completed)
@@ -70,13 +66,10 @@ def index():
 @login_required
 def get_system_message():
     user_id = session.get('user_id')
-    
-    # Fetch live tasks just like your index route does
     todo_rows = db.execute("SELECT id, task FROM list WHERE user_id = ?", user_id)
     total_tasks = len(todo_rows)
     task_due = total_tasks
     
-    # Generate the message using your exact arrays!
     if total_tasks > 0:
         starter = ["Yo", "Dude", "Bro", "Hey", "Hello,", "Have a moment?", "Helloooooo", "Hey dude"]
         middle = [f"You got {task_due} due left!", f"Clock's ticking! {task_due} tasks are waiting!", f"You need to lock in bruh"]
@@ -92,7 +85,6 @@ def add_task():
     user_id = session.get('user_id')
     new_task = request.form.get("task_name", "").strip()
     
-    # Prevent task additions completely if the system state is locked
     if new_task and not session.get("locked", False):
         db.execute("INSERT INTO list (user_id, task) VALUES (?, ?)", user_id, new_task)
         
@@ -102,11 +94,8 @@ def add_task():
 @login_required
 def complete_task(task_id):
     user_id = session.get('user_id')
-    
     db.execute("DELETE FROM list WHERE id = ? AND user_id = ?", task_id, user_id)
     session["completed_count"] = session.get("completed_count", 0) + 1
-    
-    # --- CHANGE THIS LINE FROM REDIRECT TO JSON ---
     return redirect("/main")
 
 @app.route("/")
@@ -136,20 +125,18 @@ def login():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        # --- MATCHED PERFECTLY TO YOUR HTML CODES ---
         username = request.form.get("new_username")
         password = request.form.get("new_password")
         confirmation = request.form.get("confirmation")
         
-        # 1. Validation check for blank entries or password mismatches
         if not username or not password or confirmation != password:
             return "Invalid registration details. Ensure passwords match.", 400
             
-        # 2. Strict check to ensure username doesn't already exist in the database
         rows = db.execute("SELECT * FROM users WHERE username = ?", username)
         if len(rows) > 0:
             return "Username taken. Please choose a different identity.", 400
         
-        # 3. Clean insert execution block
         try:
             db.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", 
                        username, generate_password_hash(password))
