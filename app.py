@@ -106,7 +106,8 @@ def complete_task(task_id):
     db.execute("DELETE FROM list WHERE id = ? AND user_id = ?", task_id, user_id)
     session["completed_count"] = session.get("completed_count", 0) + 1
     
-    return redirect("/main")
+    # --- CHANGE THIS LINE FROM REDIRECT TO JSON ---
+    return jsonify({"success": True, "completed_count": session["completed_count"]})
 
 @app.route("/")
 def home():
