@@ -6,6 +6,7 @@ from functools import wraps
 import random
 
 app = Flask(__name__, template_folder='templates', static_folder='static')
+app.secret_key = os.urandom(24)
 
 # 2. Connect to the pristine environment path (with the Vercel pre-create file trick)
 if os.path.exists("/tmp"):
